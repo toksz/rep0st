@@ -74,6 +74,11 @@ class DecodeMediaService:
     yield self._decode_image(data)
 
   def decode_video_from_file(self, file: BinaryIO) -> Iterable[numpy.ndarray]:
+    # Enforce video duration limit
+    duration_limit = rep0st_video_config.FLAGS.rep0st_video_max_duration
+    # Enforce video upload size limit
+    upload_size_limit = rep0st_video_config.FLAGS.rep0st_video_max_upload_size_mb
+
     cmd = (
         ffmpeg
         .input(
@@ -85,16 +90,32 @@ class DecodeMediaService:
             loglevel='error')
         .output('pipe:', vcodec='ppm', format='rawvideo'))
 
-    # Enforce video duration limit
-    duration_limit = rep0st_video_config.FLAGS.rep0st_video_max_duration
-    # Enforce video upload size limit
-    upload_size_limit = rep0st_video_config.FLAGS.rep0st_video_max_upload_size_mb
-
     proc = subprocess.Popen(
         cmd.compile(),
         stdin=file,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
+
+    # Check video duration
+    try:
+      probe = ffmpeg.probe(file)
+      duration = float(probe['format']['duration'])
+      if duration > rep0st_video_config.FLAGS.rep0st_video_max_duration:
+        raise ImageDecodeException(
+            f'Video duration {duration} exceeds maximum allowed duration {rep0st_video_config.FLAGS.rep0st_video_max_duration}'
+        )
+    except ffmpeg.Error as e:
+      log.warning(f"Failed to get video duration: {e}")
+
+    # Check video upload size
+    file.seek(0, 2)  # Seek to the end of the file.
+    file_size = file.tell()  # Get the file size.
+    file.seek(0)  # Rewind the file to the beginning.
+    upload_size_limit_bytes = rep0st_video_config.FLAGS.rep0st_video_max_upload_size_mb * 1024 * 1024
+    if file_size > upload_size_limit_bytes:
+      raise ImageDecodeException(
+          f'Video upload size {file_size} exceeds maximum allowed size {upload_size_limit_bytes}'
+      )
 
     while True:
       format = _readline(proc.stdout)
