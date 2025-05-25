@@ -7,6 +7,7 @@ from rep0st.db import PostType
 from rep0st.db.post import Post, PostRepository, PostRepositoryModule
 from rep0st.service.analyze_service import AnalyzeService, AnalyzeServiceModule
 from rep0st.service.media_service import DecodeMediaService, DecodeMediaServiceModule
+from rep0st.config import rep0st_video_config
 
 log = logging.getLogger(__name__)
 
