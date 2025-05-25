@@ -99,6 +99,11 @@ class FeatureService:
   def _process_work_post(self, work_post: WorkPost) -> WorkPost:
     work_post.started = True
     try:
+      # Enforce video keyframe interval limit
+      keyframe_interval = rep0st_video_config.FLAGS.rep0st_video_keyframe_interval
+      # Enforce video max keyframes limit
+      max_keyframes = rep0st_video_config.FLAGS.rep0st_video_max_keyframes
+
       for i, image in enumerate(self.read_media_service.get_images(work_post)):
         work_post.images.append(
             WorkImage(i, self.analyze_service.analyze(image)))

@@ -46,6 +46,11 @@ class PostSearchService:
     image = list(self.decode_media_service.decode_image_from_buffer(data))[0]
     feature_vector = self.analyze_service.analyze(image)
 
+    # Enforce video min matches limit
+    min_matches = rep0st_video_config.FLAGS.rep0st_video_min_matches
+    # Enforce video similarity threshold limit
+    similarity_threshold = rep0st_video_config.FLAGS.rep0st_video_similarity_threshold
+
     search_results = [
         SearchResult(score, post)
         for score, post in self.post_repository.search_posts(
