@@ -97,7 +97,8 @@ class Post(Base):
   deleted = Column(Boolean(), nullable=False, default=False)
   # List of features associated with this post.
   feature_vectors = relationship(
-      FeatureVector, cascade='save-update, merge, delete, delete-orphan')
+      FeatureVector, cascade='save-update, merge, delete, delete-orphan', back_populates='post')
+  frame_infos = relationship('FrameInfo', back_populates='post')
   # True if features are indexed for this post.
   features_indexed = Column(
       Boolean(), nullable=False, index=True, default=False)

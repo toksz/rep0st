@@ -28,19 +28,24 @@ class FeatureVector(Base):
   # Same as post.type. Needed for better index.
   post_type = Column(Enum(PostType), nullable=False, index=True)
   vec = Column(Vector(108))
+  frame_number = Column(Integer)
+  frame_info_id = Column(Integer, ForeignKey('frame_info.id'))
+  frame_info = relationship('FrameInfo', back_populates='feature_vectors')
 
   def __str__(self):
     return "FeatureVector(post=%s, post_type=%s, vec=%s)" % (
         self.post, self.post_type, self.vec)
 
   def __repr__(self):
-    return f"FeatureVector(post_id={self.post_id}, post_type={self.post_type}, id={self.id})"
+    return f"FeatureVector(post_id={self.post_id}, post_type={self.post_type}, id={self.id}, frame_number={self.frame_number})"
 
 
 class FeatureVectorKey(CompoundKey):
   post_id: int
   id: int
   post_type: PostType
+  frame_number: int | None
+  frame_info_id: int | None
 
 
 class FeatureVectorRepository(Repository[FeatureVectorKey, FeatureVector]):
@@ -56,6 +61,21 @@ class FeatureVectorRepository(Repository[FeatureVectorKey, FeatureVector]):
           },
           postgresql_ops={'vec': 'vector_l2_ops'},
           postgresql_where=FeatureVector.post_type == PostType.IMAGE,
+      ),
+      Index(
+          'idx_feature_vector_frame_info',
+          FeatureVector.frame_info_id,
+      ),
+      Index(
+          'feature_vector_post_type_video_vec_approx',
+          FeatureVector.vec,
+          postgresql_using='hnsw',
+          postgresql_with={
+              'm': 16,
+              'ef_construction': 64
+          },
+          postgresql_ops={'vec': 'vector_l2_ops'},
+          postgresql_where=FeatureVector.post_type == PostType.VIDEO,
       )
   ]
 
