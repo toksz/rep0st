@@ -84,6 +84,12 @@ class DecodeMediaService:
             threads=1,
             loglevel='error')
         .output('pipe:', vcodec='ppm', format='rawvideo'))
+
+    # Enforce video duration limit
+    duration_limit = rep0st_video_config.FLAGS.rep0st_video_max_duration
+    # Enforce video upload size limit
+    upload_size_limit = rep0st_video_config.FLAGS.rep0st_video_max_upload_size_mb
+
     proc = subprocess.Popen(
         cmd.compile(),
         stdin=file,
