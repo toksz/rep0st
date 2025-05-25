@@ -10,6 +10,7 @@ import subprocess
 
 from rep0st.db import PostType
 from rep0st.db.post import Post
+from rep0st.config import rep0st_video_config
 
 log = logging.getLogger(__name__)
 FLAGS = flags.FLAGS
@@ -73,14 +74,16 @@ class DecodeMediaService:
     yield self._decode_image(data)
 
   def decode_video_from_file(self, file: BinaryIO) -> Iterable[numpy.ndarray]:
-    cmd = ffmpeg.input(
-        'pipe:',
-        vsync=0,
-        skip_frame='nokey',
-        hide_banner=None,
-        threads=1,
-        loglevel='error').output(
-            'pipe:', vcodec='ppm', format='rawvideo')
+    cmd = (
+        ffmpeg
+        .input(
+            'pipe:',
+            vsync=0,
+            skip_frame='nokey',
+            hide_banner=None,
+            threads=1,
+            loglevel='error')
+        .output('pipe:', vcodec='ppm', format='rawvideo'))
     proc = subprocess.Popen(
         cmd.compile(),
         stdin=file,

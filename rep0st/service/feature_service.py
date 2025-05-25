@@ -15,6 +15,7 @@ from rep0st.db.post import Post, PostErrorStatus, PostRepository, PostRepository
 from rep0st.framework.data.transaction import transactional
 from rep0st.service.analyze_service import AnalyzeService, AnalyzeServiceModule
 from rep0st.service.media_service import ImageDecodeException, NoMediaFoundException, ReadMediaService, ReadMediaServiceModule
+from rep0st.config import rep0st_video_config
 
 log = logging.getLogger(__name__)
 
